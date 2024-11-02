@@ -3,6 +3,7 @@ from tkinter import ttk
 import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.animation import FuncAnimation
 
 
 # Функция для численного решения ОДУ методом Рунге-Кутты 4-го порядка
@@ -23,7 +24,7 @@ def runge_kutta_4th_order(f, y0, t, args=()):
     return y
 
 
-# Функция для вычисления производных (модель колебания груза на пружине с сопротивлением)
+# Функция для вычисления производных
 def spring_oscillation(t, y, m, k, b):
     x, v = y
     dxdt = v
@@ -41,10 +42,22 @@ def calculate_energies(m, k, y):
     return kinetic_energy, potential_energy, total_energy
 
 
+# Функция для анимации графиков
+def animate(i):
+    if i < len(t_eval):
+        # Обновляем данные для каждого временного шага
+        line_ke.set_data(t_eval[:i], kinetic_energy[:i])
+        line_pe.set_data(t_eval[:i], potential_energy[:i])
+        line_te.set_data(t_eval[:i], total_energy[:i])
+
+    return line_ke, line_pe, line_te
+
+
 # Функция для построения графиков
 def plot_energies():
+    global kinetic_energy, potential_energy, total_energy, t_eval, line_ke, line_pe, line_te, ani
+
     try:
-        # Получаем параметры из полей ввода
         m = float(entry_mass.get())
         k = float(entry_k.get())
         b = float(entry_b.get())
@@ -52,7 +65,7 @@ def plot_energies():
         result_label.config(text="Ошибка: введите корректные значения параметров")
         return
 
-    # Начальные условия: начальная координата (смещение) и скорость
+    # Начальные условия
     x0 = 1.0
     v0 = 0.0
     y0 = [x0, v0]
@@ -61,29 +74,38 @@ def plot_energies():
     t_span = (0, 20)
     t_eval = np.linspace(t_span[0], t_span[1], 500)
 
-    # Решение ОДУ методом Рунге-Кутты 4-го порядка
+    # Решение ОДУ
     y_solution = runge_kutta_4th_order(spring_oscillation, y0, t_eval, args=(m, k, b))
 
     # Вычисление энергий
     kinetic_energy, potential_energy, total_energy = calculate_energies(m, k, y_solution)
 
-    # Создаем графики
+    # Создаем фигуру и оси
     fig = Figure(figsize=(8, 6))
     ax1 = fig.add_subplot(311)
-    ax1.plot(t_eval, kinetic_energy, label="Кинетическая энергия", color="blue")
+    ax2 = fig.add_subplot(312)
+    ax3 = fig.add_subplot(313)
+
+    # Инициализация линий для анимации
+    line_ke, = ax1.plot([], [], label="Кинетическая энергия", color="blue")
+    line_pe, = ax2.plot([], [], label="Потенциальная энергия", color="orange")
+    line_te, = ax3.plot([], [], label="Полная энергия", color="green")
+
     ax1.set_ylabel("Энергия (Дж)")
     ax1.legend()
-
-    ax2 = fig.add_subplot(312)
-    ax2.plot(t_eval, potential_energy, label="Потенциальная энергия", color="orange")
     ax2.set_ylabel("Энергия (Дж)")
     ax2.legend()
-
-    ax3 = fig.add_subplot(313)
-    ax3.plot(t_eval, total_energy, label="Полная энергия", color="green")
     ax3.set_xlabel("Время (с)")
     ax3.set_ylabel("Энергия (Дж)")
     ax3.legend()
+
+    # Устанавливаем пределы для осей
+    ax1.set_xlim(t_eval[0], t_eval[-1])
+    ax2.set_xlim(t_eval[0], t_eval[-1])
+    ax3.set_xlim(t_eval[0], t_eval[-1])
+    ax1.set_ylim(0, max(kinetic_energy) * 1.1)
+    ax2.set_ylim(0, max(potential_energy) * 1.1)
+    ax3.set_ylim(0, max(total_energy) * 1.1)
 
     # Отображение графика на Tkinter Canvas
     for widget in canvas_frame.winfo_children():
@@ -92,6 +114,9 @@ def plot_energies():
     canvas = FigureCanvasTkAgg(fig, master=canvas_frame)
     canvas.draw()
     canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+    # Запуск анимации
+    ani = FuncAnimation(fig, animate, frames=len(t_eval), interval=20, blit=True)
 
 
 # Настройка интерфейса tkinter
