@@ -3,6 +3,19 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk
 
+def calculate_velocity():
+    # Заданные параметры
+    m = 3  # кг
+    mu = 0.03
+    R = 3  # м
+    g = 9.8  # м/с^2
+
+    # Вычисление необходимой скорости
+    v_min_squared = 2 * g * R * (7/4 - mu * (np.sqrt(3)/2))
+    v_min = np.sqrt(v_min_squared)
+
+    return v_min
+
 def plot_trajectory():
     # Заданные параметры
     m = 3  # кг
@@ -13,9 +26,8 @@ def plot_trajectory():
     # Ускорение свободного падения
     g = 9.8  # м/с^2
 
-    # Вычисление начальной скорости (из предыдущего решения)
-    v0_squared = 2 * g * R * (7/4 - mu * (np.sqrt(3)/2))
-    v0 = np.sqrt(v0_squared)
+    # Вычисление начальной скорости
+    v0 = calculate_velocity()
 
     # Скорость в точке отрыва от дуги
     v_alpha = np.sqrt(g * R / 2)
@@ -61,6 +73,9 @@ def plot_trajectory():
     canvas.draw()
     canvas.get_tk_widget().pack()
 
+    # Вывод необходимой скорости
+    velocity_label.config(text=f'Необходимая скорость: {v0:.2f} м/с')
+
 # Создание главного окна
 window = tk.Tk()
 window.title("Мертвая петля")
@@ -69,6 +84,10 @@ window.geometry("800x600")
 # Кнопка для построения графика
 plot_button = tk.Button(window, text="Построить траекторию", command=plot_trajectory)
 plot_button.pack()
+
+# Метка для отображения необходимой скорости
+velocity_label = tk.Label(window, text="", font=("Arial", 12))
+velocity_label.pack()
 
 # Запуск главного цикла
 window.mainloop()
