@@ -2,10 +2,10 @@
 import matplotlib.pyplot as plt
 
 # Заданные параметры
-m = 2  # кг
+m = 3  # кг
 mu = 0.03
-R = 4  # м
-alpha = np.pi + (np.pi / 3)  # 4π/3 радиан
+R = 3  # м
+alpha = np.pi + (np.pi / 6)  # 4π/3 радиан
 
 # Ускорение свободного падения
 g = 9.8  # м/с^2
